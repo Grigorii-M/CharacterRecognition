@@ -14,35 +14,23 @@ class Application : public olc::PixelGameEngine {
   }
 
   bool OnUserCreate() override {
-    std::string glyphs = "1234567890";
-    Data font1("/usr/share/fonts/TTF/NotoSansMono-Regular-Nerd-Font-Complete.ttf");
+    for (int y = 0; y < ScreenHeight(); y++)
+      for (int x = 0; x < ScreenWidth(); x++)
+        Draw(x, y, olc::DARK_BLUE);
 
-    for (int x = 0; x < 10; x++) {
-      int y = 0;
-      auto glyph = font1.GetGlyphBitmap(glyphs[x]);
-      auto width = glyph.width;
+    Data data;
 
-      for (int i = 0; i < glyph.width; i++) {
-        for (int j = 0; j < glyph.rows; j++) {
-          auto value = glyph.buffer[j * width + i];
-          Draw(x * 16 + i, y * 16 + j, olc::Pixel(value, value, value));
+    int offset = 0;
+    for (auto kernel : data.kernels) {
+      Bitmap bitmap = kernel.second;
+
+      for (int i = 0; i < bitmap.height; i++)
+        for (int j = 0; j < bitmap.width; j++) {
+          auto value = bitmap.Get(i, j);
+          Draw(offset + j, i, olc::Pixel(value, value, value));
         }
-      }
-    }
 
-    Data font2("/usr/share/fonts/TTF/Hack-Regular.ttf");
-
-    for (int x = 0; x < 10; x++) {
-      int y = 1;
-      auto glyph = font2.GetGlyphBitmap(glyphs[x]);
-      auto width = glyph.width;
-
-      for (int i = 0; i < glyph.width; i++) {
-        for (int j = 0; j < glyph.rows; j++) {
-          auto value = glyph.buffer[j * width + i];
-          Draw(x * 16 + i, y * 16 + j, olc::Pixel(value, value, value));
-        }
-      }
+      offset += bitmap.width + 1;
     }
 
     return true;
@@ -55,7 +43,7 @@ class Application : public olc::PixelGameEngine {
 
 int main(int argc, char *argv[]) {
   Application app;
-  if (app.Construct(16 * 10, 32, 20, 20)) {
+  if (app.Construct(16 * 10 + 10, 16 * 1, 10, 10)) {
     app.Start();
   }
   return 0;

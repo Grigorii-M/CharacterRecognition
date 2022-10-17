@@ -5,7 +5,41 @@
 #include "freetype/freetype.h"
 #include "freetype/fttypes.h"
 
-Data::Data(std::string fontPath) {
+Data::Data() {
+  std::vector<std::string> fonts = {
+    "/usr/share/fonts/TTF/NotoSansMono-Regular-Nerd-Font-Complete.ttf",
+    "/usr/share/fonts/TTF/Hack-Regular.ttf",
+    "/usr/share/fonts/TTF/DejaVuSans.ttf",
+    "/usr/share/fonts/TTF/TSCu_Times.ttf",
+  };
+
+  std::string glyphs = "0123456789";
+
+  for (std::string fontPath : fonts) {
+    auto fontFace = OpenFont(fontPath);
+
+    for (char ch : glyphs) {
+      Bitmap bitmap(16, 16);
+      auto glyphBitmap = GetGlyphBitmap(fontFace, ch);
+      
+      for (int i = 0; i < glyphBitmap.rows; i++)
+        for (int j = 0; j < glyphBitmap.width; j++) {
+          // Pre-divede the value by the number of fonts to compute average font by font
+          auto value = (uint8_t)glyphBitmap.buffer[i * glyphBitmap.width + j] / fonts.size();
+          bitmap.Set(i, j, value);
+        }
+
+      if (this->kernels.contains(ch)) {
+        this->kernels[ch] += bitmap;
+      } else {
+        this->kernels[ch] = bitmap;
+      }
+    }
+  }
+}
+
+// TODO: handle errors
+FT_Face OpenFont(std::string fontPath) {
   FT_Library library;
   FT_Face face;
 
@@ -24,18 +58,45 @@ Data::Data(std::string fontPath) {
     std::cerr << "Could not open font file\n";
   }
 
-  // error = FT_Set_Char_Size(face, 0, 16 * 64, 96, 96);
   error = FT_Set_Pixel_Sizes(face, 16, 0);
 
-  this->library = library;
-  this->face = face;
+  return face;
 }
 
-FT_Bitmap Data::GetGlyphBitmap(char glyph) {
-  auto glyph_index = FT_Get_Char_Index(face, glyph);
+FT_Bitmap GetGlyphBitmap(FT_Face fontFace, char glyph) {
+  auto glyph_index = FT_Get_Char_Index(fontFace, glyph);
 
-  FT_Error error = FT_Load_Glyph(face, glyph_index, FT_LOAD_DEFAULT);
-  error = FT_Render_Glyph(face->glyph, FT_RENDER_MODE_NORMAL);
+  FT_Error error = FT_Load_Glyph(fontFace, glyph_index, FT_LOAD_DEFAULT);
+  error = FT_Render_Glyph(fontFace->glyph, FT_RENDER_MODE_NORMAL);
 
-  return face->glyph->bitmap;
+  return fontFace->glyph->bitmap;
+}
+
+Bitmap::Bitmap(uint32_t width, uint32_t height) : width {width}, height {height}, data {std::vector<uint8_t>(width * height, 0)} {
+}
+
+uint8_t Bitmap::Get(uint32_t i, uint32_t j) {
+  return this->data.at(i * width + j);
+}
+
+void Bitmap::Set(uint32_t i, uint32_t j, uint8_t val) {
+  this->data[i * width + j] = val;
+}
+
+Bitmap& Bitmap::operator+=(const Bitmap& rhs) {
+  if (this->data.size() != rhs.data.size()) {
+    std::cerr << "Cannot add two bitmaps of different sizes\n";
+    std::exit(1);
+  }
+
+  for (int i = 0; i < this->data.size(); i++) {
+    this->data[i] += rhs.data[i];
+  }
+
+  return *this;
+}
+
+Bitmap operator+(Bitmap lhs, const Bitmap& rhs) {
+  lhs += rhs;
+  return lhs;
 }
