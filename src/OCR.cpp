@@ -51,11 +51,11 @@ std::map<char, Eigen::MatrixXd> OCR::ComputeCovars(
     for (std::string fontPath : fontPaths) {
       auto fontFace = OpenFont(fontPath);
       auto glyphBitmap = GetGlyphBitmap(fontFace, ch);
-      auto mat = Bitmap(16, 16, glyphBitmap).ToEigenVector();
-      objects.push_back(mat);
+      auto mat = Bitmap(16, 16, glyphBitmap);
+      objects.push_back(mat.data);
     }
 
-    auto covar = CovarianceMahalanobis(objects, kernels[ch].ToEigenVector());
+    auto covar = CovarianceMahalanobis(objects, kernels[ch].data);
     output[ch] = covar;
   }
 
@@ -63,8 +63,14 @@ std::map<char, Eigen::MatrixXd> OCR::ComputeCovars(
 }
 
 std::map<char, double> OCR::Recognize(Bitmap bitmap) {
-  CalculateEMD(Bitmap(16, 16).ToEigenVector(),
-               this->kernels['n'].ToEigenVector(), this->covars['n']);
+  std::map<char, double> res;
 
-  return {};
+  for (auto entry : this->kernels) {
+    auto kernel = entry.second;
+    auto covar = this->covars[entry.first];
+    auto val = CalculateEMD(bitmap.data, kernel.data, covar);
+    res[entry.first] = val;
+  }
+
+  return res;
 }

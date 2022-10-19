@@ -15,6 +15,7 @@ class OCR {
       std::map<char, Bitmap> kernels);
 
  public:
+  OCR() = default;
   OCR(std::string glyphs, std::vector<std::string> fontPaths);
   std::map<char, double> Recognize(Bitmap bitmap);
 

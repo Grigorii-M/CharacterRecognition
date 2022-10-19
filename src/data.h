@@ -14,7 +14,7 @@ class Bitmap {
  public:
   uint32_t width;   // j
   uint32_t height;  // i
-  std::vector<uint8_t> data;
+  Eigen::VectorXd data;
 
  public:
   Bitmap() = default;
@@ -22,6 +22,7 @@ class Bitmap {
   Bitmap(uint32_t width, uint32_t height, FT_Bitmap glyphBitmap);
   void Set(uint32_t i, uint32_t j, uint8_t val);
   uint8_t Get(uint32_t i, uint32_t j);
+  void Clear();
 
  public:  // Overloaded operators
   Bitmap& operator+=(const Bitmap& rhs);
@@ -29,8 +30,6 @@ class Bitmap {
 
   Bitmap shift(uint32_t w, uint32_t h);
   void shift_ip(uint32_t w, uint32_t h);
-
-  Eigen::MatrixXd ToEigenVector();
 };
 
 FT_Face OpenFont(std::string fontPath);

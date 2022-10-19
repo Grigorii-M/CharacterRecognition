@@ -39,15 +39,14 @@ FT_Bitmap GetGlyphBitmap(FT_Face fontFace, char glyph) {
   return fontFace->glyph->bitmap;
 }
 
-Bitmap::Bitmap(uint32_t width, uint32_t height)
-    : width{width},
-      height{height},
-      data{std::vector<uint8_t>(width * height, 0)} {}
+Bitmap::Bitmap(uint32_t width, uint32_t height) : width{width}, height{height} {
+  data = Eigen::VectorXd(16 * 16);
+  data.setZero();
+}
 
 Bitmap::Bitmap(uint32_t width, uint32_t height, FT_Bitmap glyphBitmap)
-    : width{width},
-      height{height},
-      data{std::vector<uint8_t>(width * height, 0)} {
+    : width{width}, height{height} {
+  data = Eigen::VectorXd(16 * 16);
   for (int i = 0; i < glyphBitmap.rows; i++)
     for (int j = 0; j < glyphBitmap.width; j++) {
       // Pre-divede the value by the number of fonts to compute average font
@@ -58,12 +57,14 @@ Bitmap::Bitmap(uint32_t width, uint32_t height, FT_Bitmap glyphBitmap)
 }
 
 uint8_t Bitmap::Get(uint32_t i, uint32_t j) {
-  return this->data.at(i * width + j);
+  return this->data[i * width + j];
 }
 
 void Bitmap::Set(uint32_t i, uint32_t j, uint8_t val) {
-  this->data[i * width + j] = val;
+  if (i < height && j < width) this->data[i * width + j] = val;
 }
+
+void Bitmap::Clear() { data.setZero(); }
 
 Bitmap& Bitmap::operator+=(const Bitmap& rhs) {
   if (this->data.size() != rhs.data.size()) {
@@ -105,16 +106,4 @@ void Bitmap::shift_ip(uint32_t w, uint32_t h) {
       this->Set(i, j, new_bm.Get(i, j));
     }
   }
-}
-
-Eigen::MatrixXd Bitmap::ToEigenVector() {
-  Eigen::VectorXd output(this->data.size());
-  for (int i = 0; i < this->data.size(); i++) {
-    double val = this->data[i] / (double)255;
-    auto x = i % this->width;
-    auto y = i / this->width;
-
-    output[i] = val;
-  }
-  return output;
 }
