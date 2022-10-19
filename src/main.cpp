@@ -1,7 +1,7 @@
 #include <algorithm>
 #include <iostream>
 
-#include "OCR.h"
+#include "CR.h"
 
 #define OLC_PGE_APPLICATION
 #include "olcPixelGameEngine.h"
@@ -13,7 +13,7 @@ class Application : public olc::PixelGameEngine {
   const int KERNEL_AREA_X = 40;
   const int KERNEL_AREA_Y = 8;
   const uint8_t DRAWING_AREA_SIDE = 16;
-  OCR ocr;
+  CharacterRecognizer cr;
   Bitmap bitmap;
 
  public:
@@ -36,7 +36,7 @@ class Application : public olc::PixelGameEngine {
 
     std::string glyphs =
         "1234567890";  // ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
-    this->ocr = {glyphs, fonts};
+    this->cr = {glyphs, fonts};
 
     // Clear(olc::VERY_DARK_BLUE);
     return true;
@@ -68,7 +68,7 @@ class Application : public olc::PixelGameEngine {
     }
 
     if (GetKey(olc::Key::ENTER).bPressed) {
-      auto res = ocr.Recognize(bitmap);
+      auto res = cr.Recognize(bitmap);
 
       char smallest;
       double val = std::numeric_limits<double>::infinity();
@@ -81,7 +81,7 @@ class Application : public olc::PixelGameEngine {
       }
       std::cout << "=========================\n";
 
-      auto bm = ocr.kernels[smallest];
+      auto bm = cr.kernels[smallest];
       for (int y = KERNEL_AREA_Y; y < KERNEL_AREA_Y + DRAWING_AREA_SIDE; y++) {
         for (int x = KERNEL_AREA_X; x < KERNEL_AREA_X + DRAWING_AREA_SIDE;
              x++) {

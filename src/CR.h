@@ -2,7 +2,7 @@
 #include "calc.h"
 #include "data.h"
 
-class OCR {
+class CharacterRecognizer {
  public:
   std::map<char, Bitmap> kernels;
   std::map<char, Eigen::MatrixXd> covars;
@@ -15,9 +15,7 @@ class OCR {
       std::map<char, Bitmap> kernels);
 
  public:
-  OCR() = default;
-  OCR(std::string glyphs, std::vector<std::string> fontPaths);
+  CharacterRecognizer() = default;
+  CharacterRecognizer(std::string glyphs, std::vector<std::string> fontPaths);
   std::map<char, double> Recognize(Bitmap bitmap);
-
- private:
 };

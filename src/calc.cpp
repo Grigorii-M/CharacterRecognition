@@ -12,8 +12,8 @@ double CalculateEMD(Eigen::VectorXd observation, Eigen::VectorXd kernel,
   return output;
 }
 
-Eigen::MatrixXd CovarianceMahalanobis(std::vector<Eigen::VectorXd> objects,
-                                      Eigen::VectorXd kernel) {
+Eigen::MatrixXd CovarianceEucledianMahalanobis(
+    std::vector<Eigen::VectorXd> objects, Eigen::VectorXd kernel) {
   Eigen::MatrixXd output(CELL_SIZE * CELL_SIZE, CELL_SIZE * CELL_SIZE);
   for (int i = 0; i < CELL_SIZE * CELL_SIZE; i++) {
     for (int j = 0; j < CELL_SIZE * CELL_SIZE; j++) {

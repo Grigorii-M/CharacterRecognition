@@ -7,5 +7,6 @@ const uint32_t CELL_SIZE = 16;
 double CalculateEMD(Eigen::VectorXd observation, Eigen::VectorXd kernel,
                     Eigen::MatrixXd covariance);
 
-Eigen::MatrixXd CovarianceMahalanobis(std::vector<Eigen::VectorXd> objects,
-                                      Eigen::VectorXd kernel);
+/// Calculate Eucledian-Mahalanobis covariance matrix
+Eigen::MatrixXd CovarianceEucledianMahalanobis(
+    std::vector<Eigen::VectorXd> objects, Eigen::VectorXd kernel);

@@ -1,16 +1,17 @@
-#include "OCR.h"
+#include "CR.h"
 
 #include <iostream>
 
 #include "calc.h"
 
-OCR::OCR(std::string glyphs, std::vector<std::string> fontPaths) {
+CharacterRecognizer::CharacterRecognizer(std::string glyphs,
+                                         std::vector<std::string> fontPaths) {
   this->kernels = ComputeKernels(glyphs, fontPaths);
   this->covars = ComputeCovars(glyphs, fontPaths, this->kernels);
 }
 
-std::map<char, Bitmap> OCR::ComputeKernels(std::string glyphs,
-                                           std::vector<std::string> fontPaths) {
+std::map<char, Bitmap> CharacterRecognizer::ComputeKernels(
+    std::string glyphs, std::vector<std::string> fontPaths) {
   std::map<char, Bitmap> kernels;
 
   for (std::string fontPath : fontPaths) {
@@ -42,7 +43,7 @@ std::map<char, Bitmap> OCR::ComputeKernels(std::string glyphs,
   return kernels;
 }
 
-std::map<char, Eigen::MatrixXd> OCR::ComputeCovars(
+std::map<char, Eigen::MatrixXd> CharacterRecognizer::ComputeCovars(
     std::string glyphs, std::vector<std::string> fontPaths,
     std::map<char, Bitmap> kernels) {
   std::map<char, Eigen::MatrixXd> output;
@@ -55,14 +56,14 @@ std::map<char, Eigen::MatrixXd> OCR::ComputeCovars(
       objects.push_back(mat.data);
     }
 
-    auto covar = CovarianceMahalanobis(objects, kernels[ch].data);
+    auto covar = CovarianceEucledianMahalanobis(objects, kernels[ch].data);
     output[ch] = covar;
   }
 
   return output;
 }
 
-std::map<char, double> OCR::Recognize(Bitmap bitmap) {
+std::map<char, double> CharacterRecognizer::Recognize(Bitmap bitmap) {
   std::map<char, double> res;
 
   for (auto entry : this->kernels) {
