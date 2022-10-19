@@ -5,39 +5,6 @@
 #include "freetype/freetype.h"
 #include "freetype/fttypes.h"
 
-Data::Data() {
-  std::vector<std::string> fonts = {
-    "/usr/share/fonts/TTF/NotoSansMono-Regular-Nerd-Font-Complete.ttf",
-    "/usr/share/fonts/TTF/Hack-Regular.ttf",
-    "/usr/share/fonts/TTF/DejaVuSans.ttf",
-    "/usr/share/fonts/TTF/TSCu_Times.ttf",
-  };
-
-  std::string glyphs = "0123456789";
-
-  for (std::string fontPath : fonts) {
-    auto fontFace = OpenFont(fontPath);
-
-    for (char ch : glyphs) {
-      Bitmap bitmap(16, 16);
-      auto glyphBitmap = GetGlyphBitmap(fontFace, ch);
-      
-      for (int i = 0; i < glyphBitmap.rows; i++)
-        for (int j = 0; j < glyphBitmap.width; j++) {
-          // Pre-divede the value by the number of fonts to compute average font by font
-          auto value = (uint8_t)glyphBitmap.buffer[i * glyphBitmap.width + j] / fonts.size();
-          bitmap.Set(i, j, value);
-        }
-
-      if (this->kernels.contains(ch)) {
-        this->kernels[ch] += bitmap;
-      } else {
-        this->kernels[ch] = bitmap;
-      }
-    }
-  }
-}
-
 // TODO: handle errors
 FT_Face OpenFont(std::string fontPath) {
   FT_Library library;
@@ -72,7 +39,22 @@ FT_Bitmap GetGlyphBitmap(FT_Face fontFace, char glyph) {
   return fontFace->glyph->bitmap;
 }
 
-Bitmap::Bitmap(uint32_t width, uint32_t height) : width {width}, height {height}, data {std::vector<uint8_t>(width * height, 0)} {
+Bitmap::Bitmap(uint32_t width, uint32_t height)
+    : width{width},
+      height{height},
+      data{std::vector<uint8_t>(width * height, 0)} {}
+
+Bitmap::Bitmap(uint32_t width, uint32_t height, FT_Bitmap glyphBitmap)
+    : width{width},
+      height{height},
+      data{std::vector<uint8_t>(width * height, 0)} {
+  for (int i = 0; i < glyphBitmap.rows; i++)
+    for (int j = 0; j < glyphBitmap.width; j++) {
+      // Pre-divede the value by the number of fonts to compute average font
+      // by font
+      auto value = (uint8_t)glyphBitmap.buffer[i * glyphBitmap.width + j];
+      this->Set(i, j, value);
+    }
 }
 
 uint8_t Bitmap::Get(uint32_t i, uint32_t j) {
@@ -99,4 +81,40 @@ Bitmap& Bitmap::operator+=(const Bitmap& rhs) {
 Bitmap operator+(Bitmap lhs, const Bitmap& rhs) {
   lhs += rhs;
   return lhs;
+}
+
+Bitmap Bitmap::shift(uint32_t w, uint32_t h) {
+  Bitmap new_bm(this->width, this->height);
+  // Shift the bitmap by w pixels to the right and h pixels down, wrapping
+  // around
+  for (uint32_t i = 0; i < this->height; i++) {
+    for (uint32_t j = 0; j < this->width; j++) {
+      new_bm.Set(i, j,
+                 this->Get((i - h) % this->height, (j - w) % this->width));
+    }
+  }
+  return new_bm;
+}
+
+void Bitmap::shift_ip(uint32_t w, uint32_t h) {
+  // Create a new bitmap that is a shifted copy of this one
+  Bitmap new_bm = this->shift(w, h);
+  // Copy the new bitmap into this one
+  for (uint32_t i = 0; i < this->height; i++) {
+    for (uint32_t j = 0; j < this->width; j++) {
+      this->Set(i, j, new_bm.Get(i, j));
+    }
+  }
+}
+
+Eigen::MatrixXd Bitmap::ToEigenVector() {
+  Eigen::VectorXd output(this->data.size());
+  for (int i = 0; i < this->data.size(); i++) {
+    double val = this->data[i] / (double)255;
+    auto x = i % this->width;
+    auto y = i / this->width;
+
+    output[i] = val;
+  }
+  return output;
 }

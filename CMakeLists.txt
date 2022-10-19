@@ -8,11 +8,15 @@ set(CMAKE_CXX_STANDARD 20)
 set(PROJECT_HEADERS
   src/olcPixelGameEngine.h
   src/data.h
+  src/OCR.h
+  src/calc.h
 )
 
 set(PROJECT_SOURCES
   src/main.cpp
   src/data.cpp
+  src/OCR.cpp
+  src/calc.cpp
 )
 
 add_executable(ImageRecognition ${PROJECT_HEADERS} ${PROJECT_SOURCES})
