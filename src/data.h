@@ -12,16 +12,16 @@
 
 class Bitmap {
  public:
-  uint32_t width;   // j
-  uint32_t height;  // i
+  uint32_t width;
+  uint32_t height;
   Eigen::VectorXd data;
 
  public:
   Bitmap() = default;
   Bitmap(uint32_t width, uint32_t height);
   Bitmap(uint32_t width, uint32_t height, FT_Bitmap glyphBitmap);
-  void Set(uint32_t i, uint32_t j, uint8_t val);
-  uint8_t Get(uint32_t i, uint32_t j);
+  void Set(uint32_t x, uint32_t y, int val);
+  uint8_t Get(uint32_t x, uint32_t y);
   void Clear();
 
  public:  // Overloaded operators

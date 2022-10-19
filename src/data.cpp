@@ -40,28 +40,29 @@ FT_Bitmap GetGlyphBitmap(FT_Face fontFace, char glyph) {
 }
 
 Bitmap::Bitmap(uint32_t width, uint32_t height) : width{width}, height{height} {
-  data = Eigen::VectorXd(16 * 16);
+  data = Eigen::VectorXd(width * height);
   data.setZero();
 }
 
 Bitmap::Bitmap(uint32_t width, uint32_t height, FT_Bitmap glyphBitmap)
     : width{width}, height{height} {
-  data = Eigen::VectorXd(16 * 16);
-  for (int i = 0; i < glyphBitmap.rows; i++)
-    for (int j = 0; j < glyphBitmap.width; j++) {
-      // Pre-divede the value by the number of fonts to compute average font
-      // by font
-      auto value = (uint8_t)glyphBitmap.buffer[i * glyphBitmap.width + j];
-      this->Set(i, j, value);
+  data = Eigen::VectorXd(width * height);
+  for (int y = 0; y < glyphBitmap.rows; y++)
+    for (int x = 0; x < glyphBitmap.width; x++) {
+      auto value = (uint8_t)glyphBitmap.buffer[y * glyphBitmap.width + x];
+      this->Set(x, y, value);
     }
 }
 
-uint8_t Bitmap::Get(uint32_t i, uint32_t j) {
-  return this->data[i * width + j];
+uint8_t Bitmap::Get(uint32_t x, uint32_t y) {
+  return this->data[y * width + x];
 }
 
-void Bitmap::Set(uint32_t i, uint32_t j, uint8_t val) {
-  if (i < height && j < width) this->data[i * width + j] = val;
+void Bitmap::Set(uint32_t x, uint32_t y, int val) {
+  if (x < width && y < height) {
+    val = val > 255 ? 255 : val < 0 ? 0 : val;
+    this->data[y * width + x] = val;
+  }
 }
 
 void Bitmap::Clear() { data.setZero(); }
@@ -88,10 +89,10 @@ Bitmap Bitmap::shift(uint32_t w, uint32_t h) {
   Bitmap new_bm(this->width, this->height);
   // Shift the bitmap by w pixels to the right and h pixels down, wrapping
   // around
-  for (uint32_t i = 0; i < this->height; i++) {
-    for (uint32_t j = 0; j < this->width; j++) {
-      new_bm.Set(i, j,
-                 this->Get((i - h) % this->height, (j - w) % this->width));
+  for (uint32_t y = 0; y < this->height; y++) {
+    for (uint32_t x = 0; x < this->width; x++) {
+      new_bm.Set(x, y,
+                 this->Get((x - w) % this->width, (y - h) % this->height));
     }
   }
   return new_bm;
@@ -101,9 +102,9 @@ void Bitmap::shift_ip(uint32_t w, uint32_t h) {
   // Create a new bitmap that is a shifted copy of this one
   Bitmap new_bm = this->shift(w, h);
   // Copy the new bitmap into this one
-  for (uint32_t i = 0; i < this->height; i++) {
-    for (uint32_t j = 0; j < this->width; j++) {
-      this->Set(i, j, new_bm.Get(i, j));
+  for (uint32_t y = 0; y < this->height; y++) {
+    for (uint32_t x = 0; x < this->width; x++) {
+      this->Set(x, y, new_bm.Get(x, y));
     }
   }
 }

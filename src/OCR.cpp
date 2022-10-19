@@ -20,13 +20,13 @@ std::map<char, Bitmap> OCR::ComputeKernels(std::string glyphs,
       Bitmap bitmap(16, 16);
       auto glyphBitmap = GetGlyphBitmap(fontFace, ch);
 
-      for (int i = 0; i < glyphBitmap.rows; i++)
-        for (int j = 0; j < glyphBitmap.width; j++) {
+      for (int y = 0; y < glyphBitmap.rows; y++)
+        for (int x = 0; x < glyphBitmap.width; x++) {
           // Pre-divede the value by the number of fonts to compute average font
           // by font
-          auto value = (uint8_t)glyphBitmap.buffer[i * glyphBitmap.width + j] /
+          auto value = (uint8_t)glyphBitmap.buffer[y * glyphBitmap.width + x] /
                        fontPaths.size();
-          bitmap.Set(i, j, value);
+          bitmap.Set(x, y, value);
         }
 
       bitmap.shift_ip((bitmap.width - glyphBitmap.width) / 2, 0);
