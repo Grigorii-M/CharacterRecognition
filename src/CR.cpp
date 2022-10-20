@@ -30,7 +30,7 @@ std::map<char, Bitmap> CharacterRecognizer::ComputeKernels(
           bitmap.Set(x, y, value);
         }
 
-      bitmap.shift_ip((bitmap.width - glyphBitmap.width) / 2, 0);
+      bitmap.shift_ip((bitmap.width - glyphBitmap.width) / 2, (bitmap.height - glyphBitmap.rows) / 2);
 
       if (kernels.contains(ch)) {
         kernels[ch] += bitmap;
